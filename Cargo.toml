@@ -52,6 +52,7 @@ sysinfo = "0.39.6"
 rayon = "1.12.0"
 dotenvy = "0.15.7"
 tracing-appender = "0.2.5"
+rookie = "0.5.6"
 
 [dev-dependencies]
 tokio-test = "0.4"

@@ -123,11 +123,8 @@ impl ProviderRouter {
         providers.insert("mistral".to_string(), Arc::new(MistralProvider::new(mistral_key)));
 
         // 10. Gemini Web (Cookie based)
-        if let Ok(cookie) = std::env::var("GEMINI_WEB_COOKIE") {
-            if !cookie.is_empty() {
-                providers.insert("gemini-web".to_string(), Arc::new(GeminiWebProvider::new(cookie)));
-            }
-        }
+        let cookie = std::env::var("GEMINI_WEB_COOKIE").ok();
+        providers.insert("gemini-web".to_string(), Arc::new(GeminiWebProvider::new(cookie)));
 
         // 11. Custom Models
         for cm in &config.custom_models {

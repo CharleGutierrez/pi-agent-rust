@@ -15,21 +15,55 @@ pub struct GeminiWebProvider {
 }
 
 impl GeminiWebProvider {
-    pub fn new(cookie: impl Into<String>) -> Self {
-        let raw_cookie = cookie.into();
+    pub fn auto_extract_cookie() -> Result<(String, Option<String>)> {
+        // Try all installed browsers using rookie
+        let domains = vec!["google.com".to_string(), ".google.com".to_string()];
         
-        // Basic parsing if user passes full cookie string
-        let mut psid = raw_cookie.clone();
+        let cookies = rookie::load(Some(domains)).map_err(|e| anyhow::anyhow!("Rookie error: {}", e))?;
+        let mut psid = None;
         let mut psidts = None;
         
-        if raw_cookie.contains("__Secure-1PSID=") {
-            for part in raw_cookie.split(';') {
-                let trimmed = part.trim();
-                if trimmed.starts_with("__Secure-1PSID=") {
-                    psid = trimmed.replace("__Secure-1PSID=", "");
-                } else if trimmed.starts_with("__Secure-1PSIDTS=") {
-                    psidts = Some(trimmed.replace("__Secure-1PSIDTS=", ""));
+        for cookie in cookies {
+            if cookie.name == "__Secure-1PSID" {
+                psid = Some(cookie.value.clone());
+            } else if cookie.name == "__Secure-1PSIDTS" {
+                psidts = Some(cookie.value.clone());
+            }
+        }
+        
+        match psid {
+            Some(p) => Ok((p, psidts)),
+            None => bail!("Could not find the __Secure-1PSID cookie in any installed browser. Are you logged into Gemini?"),
+        }
+    }
+
+    pub fn new(cookie: Option<String>) -> Self {
+        let mut psid = String::new();
+        let mut psidts = None;
+        
+        if let Some(raw_cookie) = cookie {
+            if raw_cookie.contains("__Secure-1PSID=") {
+                for part in raw_cookie.split(';') {
+                    let trimmed = part.trim();
+                    if trimmed.starts_with("__Secure-1PSID=") {
+                        psid = trimmed.replace("__Secure-1PSID=", "");
+                    } else if trimmed.starts_with("__Secure-1PSIDTS=") {
+                        psidts = Some(trimmed.replace("__Secure-1PSIDTS=", ""));
+                    }
                 }
+            } else {
+                psid = raw_cookie;
+            }
+        }
+        
+        if psid.is_empty() {
+            println!("🔄 Automatically extracting Gemini cookies from your browser...");
+            if let Ok((extracted_psid, extracted_psidts)) = Self::auto_extract_cookie() {
+                psid = extracted_psid;
+                psidts = extracted_psidts;
+                println!("✅ Successfully extracted Gemini session cookie!");
+            } else {
+                println!("❌ Failed to automatically extract Gemini cookies.");
             }
         }
 
