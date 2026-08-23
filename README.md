@@ -73,6 +73,109 @@ pi-agent --version
 
 ---
 
+## 🚀 How to Use Pi Agent (Complete Guide)
+
+### 1. Setting Up LLM Providers & API Keys
+
+Set the environment variable for your preferred AI provider before launching Pi Agent:
+
+| Provider | Environment Variable / Setup | Default / Common Aliases | Cost Tier |
+|---|---|---|---|
+| **Google Gemini** | `export GEMINI_API_KEY="your-key"` *or* `pi-agent login gemini` | `flash`, `gemini`, `gemini-pro` | Free 1M Tier / Paid |
+| **Anthropic** | `export ANTHROPIC_API_KEY="your-key"` | `sonnet`, `claude-3-7`, `haiku`, `opus` | Paid Frontier |
+| **OpenAI** | `export OPENAI_API_KEY="your-key"` | `4o`, `4o-mini`, `o1`, `o3-mini` | Paid Frontier |
+| **DeepSeek** | `export DEEPSEEK_API_KEY="your-key"` | `deepseek`, `r1` | Low Cost / Paid |
+| **Groq** | `export GROQ_API_KEY="your-key"` | `groq`, `groq-r1`, `groq-qwen` | Ultra-Fast Free Tier |
+| **OpenRouter** | `export OPENROUTER_API_KEY="your-key"` | `free-r1`, `free-llama` | Free & Paid |
+| **Local Ollama** | `ollama run qwen2.5-coder` (host: `http://127.0.0.1:11434`) | `ollama`, `ollama-qwen` | 100% Free & Offline |
+
+---
+
+### 2. Getting Started in a Project
+
+#### Step 1: Initialize Workspace Memory
+Run `init` in your project root to initialize `.pi/` memory tracking, `PROJECT_MAP.md`, and `plan.md`:
+```bash
+pi-agent init
+```
+
+#### Step 2: Launch an Interactive Session
+Start the interactive pair-programming REPL with your chosen model:
+```bash
+# Using Gemini 2.0 Flash (Fast & Free Tier)
+pi-agent -m flash
+
+# Using Claude 3.7 Sonnet (Deep Reasoning & Autonomous Coding)
+pi-agent -m sonnet
+
+# Using local Ollama (100% Offline & Private)
+pi-agent -m ollama
+```
+
+#### Step 3: Fullscreen TUI Dashboard Mode
+For a split-pane terminal dashboard (live chat on the left, persistent memory radar and file map on the right):
+```bash
+pi-agent --tui
+```
+
+#### Step 4: One-Shot Execution (Headless)
+Run a single prompt directly from terminal and exit immediately:
+```bash
+pi-agent -m flash -p "Find and fix any broken unit tests in src/"
+```
+
+---
+
+### 3. Interactive REPL Slash Commands Reference
+
+Inside the interactive chat prompt (`❯`), use these built-in slash commands:
+
+| Command | Description |
+|---|---|
+| `/model` | List all available models (both free and paid tiers) |
+| `/model <alias>` | Hot-swap models mid-session (e.g., `/model sonnet`, `/model r1`, `/model ollama`) |
+| `/score` | View the failure-prevention score, debugging hours saved, and token ROI |
+| `/memory` or `/summary` | Display distilled project memory, logged issues, decisions, and notes |
+| `/map` | Display the project structure map and architectural relationships |
+| `/plan` | View and manage current tasks, ideas, and roadmap in `plan.md` |
+| `/test` | Automatically runs test suites, captures failures into memory, and applies verified fixes |
+| `/refactor <file>` | Prechecks failure history and safely refactors target file |
+| `/explain <file>` | Reads and explains the architecture and relationships of a target file |
+| `/commit` | Analyzes git diff and writes a high-quality conventional git commit message |
+| `/undo` | Reverts the last conversation turn |
+| `Ctrl + C` | Instantly and cleanly aborts active streaming generation without corrupting history |
+| `/exit` or `/quit` | Saves session memory and exits |
+
+---
+
+### 4. CLI Commands & Subcommands Reference
+
+```bash
+# Display failure-prevention score & ROI report
+pi-agent memory --score
+
+# Search memory logs for past bug fixes or architectural decisions
+pi-agent memory --search "auth token"
+
+# Check failure history of a file before modifying it
+pi-agent precheck src/auth.rs
+
+# View current project intent and plan
+pi-agent plan
+
+# Add custom local or corporate endpoint (vLLM / LM Studio / OpenAI-compatible)
+pi-agent model-add \
+    --id "corp-llama" \
+    --name "Corporate Llama 3" \
+    --provider "openai" \
+    --base-url "http://10.0.0.50:8000/v1"
+
+# List all supported models
+pi-agent models
+```
+
+---
+
 ## 📖 The Pi Agent Masterclass: Real-World Scenarios
 
 Pi Agent is not just a chatbot; it is an autonomous developer that lives in your terminal. Because it has tools to read files, edit code, and remember past mistakes, you use it differently depending on your situation.
