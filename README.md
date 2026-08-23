@@ -27,78 +27,120 @@ It is an autonomous pair-programmer armed with an **Embedded Persistent Memory E
 
 ---
 
-## 📖 The Official Tutorial: How to Wield Pi Agent
+## 📖 The Pi Agent Masterclass: Real-World Scenarios
 
-Welcome to your lightning-fast, autonomous pair programmer. Here is how to wield it effectively.
+Pi Agent is not just a chatbot; it is an autonomous developer that lives in your terminal. Because it has tools to read files, edit code, and remember past mistakes, you use it differently depending on your situation.
 
-### Step 1: Arming the System (Installation)
-Because it’s written in pure Rust, installing it is incredibly simple. 
-1. Open your terminal in the project folder.
-2. Compile the highly-optimized binary:
-   ```bash
-   cargo build --release
-   ```
-3. *(Optional)* Move it to your path so you can use it anywhere:
-   ```bash
-   sudo cp ./target/release/pi-agent-rust /usr/local/bin/pi-agent
-   ```
+Here are the 5 most common scenarios and exactly how to handle them.
 
-### Step 2: Loading Your Ammunition (Connecting AI Models)
-Pi Agent supports nearly every AI model on Earth. You can use it **100% for free** or plug in premium models.
+### 🐣 Scenario 1: Starting a Brand New Project (The Setup)
+*You just created a fresh folder for a new app, and you want Pi Agent to help you build it from scratch.*
 
-**Option A: The Zero-Config Web Login (Free Gemini)**  
-Don’t want to deal with API keys? Just use your browser!
-```bash
-pi-agent login gemini
-```
-*A browser window will pop up. Click "Allow," and you are instantly connected to Google Gemini's massive 1M-token API for free.*
-
-**Option B: Using API Keys (Claude, OpenAI, DeepSeek, xAI)**  
-Create a `.env` file in your project folder and paste your keys:
-```env
-ANTHROPIC_API_KEY="sk-ant-..."
-OPENAI_API_KEY="sk-proj-..."
-GROQ_API_KEY="gsk_..."
-```
-*Pi Agent automatically detects them when it starts.*
-
-### Step 3: Calibrating the Radar (Project Memory)
-Pi Agent has **Persistent Memory**. Before you ask it to code, let it scan your project so it understands your architecture.
-Navigate to any coding project on your computer and run:
+**1. Initialize the AI Memory:**
+Open your terminal in your new project folder and run:
 ```bash
 pi-agent init
 ```
-**What happens:** It creates a `.pi/` folder, builds a `PROJECT_MAP.md` (a radar map of all your files), and sets up the safety backup directories.
+*Why?* This creates a `.pi/` folder. The agent will use this to build a map of your files (`PROJECT_MAP.md`) and keep a diary of every bug it fixes (`events.jsonl`) so it never makes the same mistake twice.
 
-### Step 4: Engaging the Target (Using the Agent)
-
-**Mode 1: The Interactive Terminal (Standard)**  
-Start chatting by simply typing:
+**2. Login without API Keys:**
+If you don't have a paid developer API key, no problem. Just log in using your browser:
 ```bash
-pi-agent
+pi-agent login gemini
 ```
-Just talk to it naturally! 
-> **You:** *"Find the bug in `src/auth.rs` where the password validation fails, and fix it."*
+*Why?* This securely connects the agent to Google's massive 1M-token free tier. You are now ready to code.
 
-Pi Agent will spin up, use its `grep` tool to read the file, use its `edit` tool to fix the code, and save an atomic `.bak` backup just in case!
+---
 
-**Mode 2: The Command Center (TUI Mode)**  
-If you want to feel like a hacker in a movie, launch the Fullscreen Dashboard:
+### 🐛 Scenario 2: The "I'm Stuck on a Nasty Bug" Situation
+*Your code is broken, it's 2:00 AM, and you are tired of reading error logs.*
+
+**1. Launch the Hacker Dashboard (TUI):**
 ```bash
 pi-agent --tui
 ```
-*This splits your screen: Chat on the left, live Project Memory and ROI scores on the right!*
+*Why?* This opens a fullscreen dashboard. On the right, you will see the agent's persistent memory. On the left, you will see the chat.
 
-### Step 5: The Master Commands (Shortcuts)
-While chatting with the agent, type these `/` commands to instantly control it:
+**2. Give the Agent a Target:**
+Type this into the chat prompt:
+> *"I am getting a 'Null Pointer Exception' when a user tries to log in. Please find the bug in `src/auth.rs` and fix it."*
 
-- **`/model <name>`** — Instantly swap the AI’s brain mid-conversation! 
-  - *Type `/model sonnet` to use Claude 3.7.*
-  - *Type `/model r1` to switch to DeepSeek R1 for heavy math.*
-  - *Type `/model ollama` for free local offline coding.*
-- **`/undo`** — If the AI makes a mistake, roll back the conversation.
-- **`/memory`** — Prints a summary of every bug you've fixed and decision you've made.
-- **`/score`** — Displays your **Failure Prevention Score** (shows you how many developer hours and API tokens the agent has saved you!).
+**3. Watch it Work:**
+- You will see a colored spinner: `[Model] is thinking...`
+- It will automatically use the `read` tool to look at `src/auth.rs`.
+- It will instantly drop a backup of your file into `.pi/backups/` so you are safe.
+- It will use the `edit` tool to fix the code automatically.
+
+**4. Verify the Fix:**
+Type `/test` in the chat. The AI will run your test suite, verify its own code, and close the issue in its memory ledger!
+
+---
+
+### 🕵️ Scenario 3: Working Offline or with Extreme Privacy
+*You are on an airplane with no Wi-Fi, or you are working on highly confidential corporate code that cannot be sent to OpenAI or Google.*
+
+**1. Start the Local Server:**
+Ensure you have [Ollama](https://ollama.com/) installed on your computer, and run a free open-source model locally:
+```bash
+ollama run qwen2.5-coder
+```
+
+**2. Connect Pi Agent to the Local Model:**
+Tell Pi Agent to switch its brain to your local offline server:
+```bash
+pi-agent -m ollama
+```
+*Why?* The agent will now process everything 100% locally on your machine's hardware. Nothing leaves your laptop.
+
+---
+
+### 🏢 Scenario 4: The Enterprise / Custom Server Environment
+*Your company hosts its own private AI server (like vLLM or LM Studio), and you need to connect Pi Agent to it.*
+
+**1. Add the Custom Model to Pi Agent:**
+You don't need to change any Rust code. Just use the built-in configuration wizard:
+```bash
+pi-agent model-add \
+    --id "corp-ai" \
+    --name "Corporate Llama 3" \
+    --provider "openai" \
+    --base-url "http://10.0.0.50:8000/v1" 
+```
+
+**2. Start Coding:**
+```bash
+pi-agent -m corp-ai
+```
+*Why?* Pi Agent dynamically saves this configuration globally. From now on, you can instantly hot-swap to your corporate AI mid-conversation by typing `/model corp-ai`.
+
+---
+
+### 🌪️ Scenario 5: Massive Codebase Refactoring
+*You inherited a massive, messy 10,000-file repository and need the AI to clean it up.*
+
+**1. Let the AutoTuner do the heavy lifting:**
+Because Pi Agent is written in Rust, it has an `AutoTuner` that detects your hardware. 
+
+Simply launch the agent on your workstation:
+```bash
+pi-agent -m sonnet
+```
+*Why?* The agent will detect your CPU cores and available RAM. If you tell it to search the codebase, it will automatically unleash Rayon thread-pools to parallel-search thousands of files in milliseconds.
+
+**2. Use the Refactor Magic Word:**
+Point the agent at a messy file and type:
+```bash
+/refactor src/messy_database.rs
+```
+*Why?* The `/refactor` shortcut automatically instructs the AI to check the file's failure history, analyze its architecture, clean up duplication, apply safety backups, and rewrite the code to production standards.
+
+---
+
+### 🛑 Emergency Bailout (The "Oops" Button)
+Did the AI generate a massive block of code you didn't ask for, or did you change your mind mid-generation?
+
+- **Action:** Press `Ctrl + C`
+- **Result:** The agent will cleanly abort the network stream instantly. It will not crash, it will not corrupt your terminal, and it will keep your chat history perfectly intact so you can type a new prompt.
 
 ---
 
