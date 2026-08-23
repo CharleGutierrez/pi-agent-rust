@@ -27,6 +27,52 @@ It is an autonomous pair-programmer armed with an **Embedded Persistent Memory E
 
 ---
 
+## 💾 Global Installation Guide
+
+Because Pi Agent is written in pure Rust, it compiles into a single, standalone binary. Once compiled, you can summon the AI from *any* folder on your computer just by typing `pi-agent`.
+
+**Prerequisite:** Ensure you have Rust installed (`curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`).
+
+### 🍏 For Mac / 🐧 Linux
+Open your terminal and run:
+```bash
+# 1. Download the repository
+git clone https://github.com/CharleGutierrez/pi-agent-rust.git
+cd pi-agent-rust
+
+# 2. Build the optimized release binary
+cargo build --release
+
+# 3. Integrate it globally into your system
+sudo cp target/release/pi-agent-rust /usr/local/bin/pi-agent
+
+# 4. Verify it works!
+pi-agent --version
+```
+
+### 🪟 For Windows (PowerShell)
+Open PowerShell as Administrator and run:
+```powershell
+# 1. Download the repository
+git clone https://github.com/CharleGutierrez/pi-agent-rust.git
+cd pi-agent-rust
+
+# 2. Build the optimized release binary
+cargo build --release
+
+# 3. Integrate it globally by creating a Tools directory
+New-Item -ItemType Directory -Force -Path "C:\Tools"
+Copy-Item -Path "target\release\pi-agent-rust.exe" -Destination "C:\Tools\pi-agent.exe"
+
+# 4. Add it to your System PATH
+[System.Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\Tools", "User")
+
+# 5. Verify it works! (Restart PowerShell first)
+pi-agent --version
+```
+
+---
+
 ## 📖 The Pi Agent Masterclass: Real-World Scenarios
 
 Pi Agent is not just a chatbot; it is an autonomous developer that lives in your terminal. Because it has tools to read files, edit code, and remember past mistakes, you use it differently depending on your situation.
