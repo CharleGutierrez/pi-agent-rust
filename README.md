@@ -197,6 +197,72 @@ Did the AI generate a massive block of code you didn't ask for, or did you chang
 - **TUI & REPL:** Powered by `Ratatui`, `Crossterm`, and `Indicatif`.
 
 ---
+
+## 🏗️ Deep Architectural Study & System Internals
+
+```
+                               ┌────────────────────────────────────────────────────────┐
+                               │                    CLI / Entrypoint                    │
+                               │                  (src/main.rs, cli.rs)                 │
+                               └─────────┬───────────────────┬──────────────────┬───────┘
+                                         │                   │                  │
+                         ┌───────────────▼────────┐ ┌────────▼────────┐ ┌───────▼────────┐
+                         │   CliInteractive REPL  │ │  Ratatui TUI    │ │ Headless RPC   │
+                         │(Indicatif / Crossterm) │ │ (Split-Pane UI) │ │ (JSON-RPC stdio│
+                         └───────────────┬────────┘ └────────┬────────┘ └───────┬────────┘
+                                         └───────────────────┼──────────────────┘
+                                                             ▼
+                                                ┌─────────────────────────┐
+                                                │      AgentEngine        │
+                                                │  (src/agent/engine.rs)  │
+                                                └────────────┬────────────┘
+                                                             │
+        ┌────────────────────────────┬───────────────────────┼───────────────────────┬────────────────────────────┐
+        ▼                            ▼                       ▼                       ▼                            ▼
+┌──────────────┐             ┌──────────────┐        ┌──────────────┐        ┌──────────────┐             ┌──────────────┐
+│ Provider     │             │ Tool         │        │ Memory       │        │ AutoTuner    │             │ Reflection & │
+│ Router       │             │ Registry     │        │ Engine       │        │ & Compactor  │             │ Planner      │
+│(src/providers│             │(src/tools/)  │        │(src/memory/) │        │(src/agent/)  │             │(src/agent/)  │
+└───────┬──────┘             └───────┬──────┘        └───────┬──────┘        └──────────────┘             └──────────────┘
+        │                            │                       │
+ ┌──────┴───────────────┐     ┌──────┴────────────────┐      │  .pi/ / .projectmem/
+ │ OpenAI, Anthropic,   │     │ read, write, edit,    │      ├─ events.jsonl (Audit Log)
+ │ Gemini (OAuth/API),  │     │ bash, grep, git,      │      ├─ summary.md (Distilled)
+ │ DeepSeek, Groq,      │     │ find_files, web_fetch,│      ├─ PROJECT_MAP.md (Paths)
+ │ Ollama, OpenRouter,  │     │ + Memory MCP Tools    │      └─ plan.md (Intent)
+ │ xAI, Mistral         │     └───────────────────────┘
+ └──────────────────────┘
+```
+
+### 1. Autonomous ReAct Agent Loop (`src/agent/`)
+- **`AgentEngine` (`engine.rs`)**: Manages the autonomous multi-turn ReAct reasoning loop. Streams model responses, dispatches tool execution, handles prompt injection, and manages session history checkpoints.
+- **`ReflectionEngine` (`reflection.rs`)**: Diagnoses tool errors (compilation errors, test assertion panics, edit conflicts, timeouts) and feeds actionable diagnostic hints back to the LLM to self-correct automatically.
+- **`AutoTuner` (`auto_tuner.rs`)**: Introspects host hardware via `sysinfo` (logical cores, RAM) and active model context capacity to auto-scale Rayon thread-pool concurrency and compaction thresholds.
+- **`ContextCompactor` (`compaction.rs`)**: Dynamically truncates conversation history to fit within the active model's token limits while preserving system instructions and recent turns.
+- **`ExecutionPlan` (`planner.rs`)**: Tracks task decomposition step-by-step with state indicators (`[ ]`, `[->]`, `[x]`).
+
+### 2. Embedded Persistent Memory Engine (`src/memory/`)
+- **Immutable Event Ledger (`storage.rs`, `events.rs`)**: Appends structured events (`Issue`, `Attempt`, `Fix`, `Decision`, `Note`) to `.pi/events.jsonl` with sequential zero-padded IDs (`#0001`, `#0002`).
+- **Pre-Flight File Radar (`precheck.rs`)**: Checked before modifying any file to surface past failed approaches, unresolved issues, and high churn.
+- **Structural Mapping (`project_map.rs`, `intent_plan.rs`)**: Generates and maintains `PROJECT_MAP.md` as a token-efficient path index and `plan.md` as an intent tracker.
+- **ROI Scoring Engine (`scoring.rs`, `search.rs`)**: Quantifies debugging hours saved and token waste prevented, and provides fast substring search across event history.
+
+### 3. Multi-LLM Provider Router (`src/providers/`)
+- **Unified Router (`router.rs`)**: Hot-swappable routing across 9+ providers: OpenAI, Anthropic, Gemini, Groq, Ollama, OpenRouter, DeepSeek, xAI, and Mistral.
+- **Zero-Key Google OAuth (`auth/google.rs`)**: Browser-based OAuth 2.0 loop on `127.0.0.1:8080/callback` with automated token refresh for Gemini models.
+- **Real-Time Token Streaming (`traits.rs`, `types.rs`)**: Low-latency token streaming with dedicated thinking/reasoning delta support.
+
+### 4. Precision Tool Suite & Safe Actuation (`src/tools/`)
+- **Smart-Whitespace Fuzzy Editor (`edit.rs`)**: 3-tier matching engine (Exact -> Normalized Line-Endings -> Fuzzy Indentation) with automatic `.bak` atomic snapshot generation in `.pi/backups/`.
+- **Workspace & Terminal Tools**: `read`, `write`, `bash` (sandboxed timeout execution), `grep`, `find_files`, `git`, `web_fetch`.
+- **Embedded Memory Tools (`memory_tools.rs`)**: Native Rust implementation of all projectmem tools (`log_issue`, `record_attempt`, `record_fix`, `add_decision`, `add_note`, `precheck_file`, `get_summary`, etc.).
+
+### 5. Multi-Modal User Interfaces (`src/ui/`)
+- **CLI Interactive REPL (`cli_interactive.rs`)**: Colorized interactive shell with animated progress spinners, Ctrl+C stream cancellation, and slash commands (`/score`, `/memory`, `/map`, `/plan`, `/model`, `/undo`, `/test`, `/commit`).
+- **Ratatui TUI Dashboard (`tui.rs`)**: Fullscreen split-pane terminal interface showing live conversation on the left and active memory radar / project map on the right.
+- **Headless JSON-RPC Server (`rpc.rs`)**: Standard I/O JSON-RPC interface for IDE extensions, automated harnesses, and external tooling.
+
+---
 *Ready to hunt some bugs? Download, build, and deploy.* ⚡
 
 ---

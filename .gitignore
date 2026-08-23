@@ -3,3 +3,8 @@
 .env
 **/*.rs.bk
 Cargo.lock
+
+.projectmem/events.jsonl
+.projectmem/watch.pid
+.projectmem/watch.log
+.projectmem/structure.json

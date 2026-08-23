@@ -1,4 +1,5 @@
 use anyhow::{bail, Context, Result};
+use colored::*;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use std::env;
@@ -88,18 +89,35 @@ impl GoogleAuth {
     }
 
     pub async fn authenticate_via_browser() -> Result<GoogleToken> {
-        let client_id = env::var("GOOGLE_CLIENT_ID").unwrap_or_else(|_| CLIENT_ID.to_string());
-        let client_secret = env::var("GOOGLE_CLIENT_SECRET").unwrap_or_else(|_| "".to_string());
+        let client_id = env::var("GOOGLE_CLIENT_ID").unwrap_or_default();
+        let client_secret = env::var("GOOGLE_CLIENT_SECRET").unwrap_or_default();
+
+        if client_id.is_empty() || client_id == CLIENT_ID {
+            println!("\n{}", "🛑 Google OAuth Setup Required".bright_red().bold());
+            println!("To use browser-based login, you must provide your own Google Cloud OAuth credentials.");
+            println!("Google's security policies forbid us from hardcoding a shared public Client ID for AI scopes.\n");
+            
+            println!("{}", "How to fix this in 3 minutes:".bright_yellow().bold());
+            println!("1. Go to {}", "https://console.cloud.google.com/".bright_cyan().underline());
+            println!("2. Create a new Project, then go to APIs & Services -> OAuth consent screen.");
+            println!("3. Go to Credentials -> Create Credentials -> OAuth client ID.");
+            println!("4. Choose 'Desktop app' (or 'Web application' with redirect URI: http://127.0.0.1:8080/callback).");
+            println!("5. Export the credentials in your terminal:\n");
+            
+            println!("   {}", "export GOOGLE_CLIENT_ID=\"your-client-id.apps.googleusercontent.com\"".bright_green());
+            println!("   {}", "export GOOGLE_CLIENT_SECRET=\"your-client-secret\"".bright_green());
+            
+            println!("\nOr, if you don't want to do this, just use a free API key instead!");
+            println!("Get one at {} and run: {}", "https://aistudio.google.com/".bright_cyan().underline(), "export GEMINI_API_KEY=\"key\"".bright_green());
+            
+            bail!("Missing GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.");
+        }
 
         let state = uuid::Uuid::new_v4().to_string();
         let auth_url = format!(
             "{}?client_id={}&redirect_uri={}&response_type=code&scope=https://www.googleapis.com/auth/generative-language.retriever%20https://www.googleapis.com/auth/cloud-platform&state={}&access_type=offline&prompt=consent",
             AUTH_URL, client_id, REDIRECT_URI, state
         );
-
-        if client_id == CLIENT_ID {
-            println!("⚠️ Using placeholder Google Client ID. For production use, set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.");
-        }
 
         println!("Opening browser to authenticate with Google Gemini...");
         println!("If the browser does not open automatically, click this link:\n\n{}\n", auth_url);
